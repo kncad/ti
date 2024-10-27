@@ -1,7 +1,7 @@
 # app/app.py
 from flask import Flask, jsonify, request, render_template
 from app.tictactoe import TicTacToe  # Importing TicTacToe class
-from app.agentimport MDPAgent       # Importing MDPAgent class
+from app.agent import MDPAgent       # Importing MDPAgent class
 import random
 
 app = Flask(__name__)
