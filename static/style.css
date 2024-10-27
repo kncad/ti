@@ -1,0 +1,29 @@
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #222;
+    color: #f0f;
+    text-align: center;
+}
+button {
+    background-color: #0f0;
+    color: #000;
+    border: 2px solid #f0f;
+    font-size: 1.2em;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    gap: 5px;
+    margin: 20px auto;
+}
+.grid div {
+    width: 100px;
+    height: 100px;
+    background-color: #444;
+    color: #fff;
+    font-size: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
