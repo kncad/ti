@@ -1,54 +1,57 @@
-# app/app.py
-from flask import Flask, jsonify, request, render_template
-from tictactoe import TicTacToe  # Importing TicTacToe class
-from agent import MDPAgent       # Importing MDPAgent class
 import random
+from flask import Flask, jsonify, request, render_template
+from tictactoe import TicTacToe
+from agent import MDPAgent
 
 app = Flask(__name__)
-
-# Initialize the game and the AI agent
 game = TicTacToe()
 agent = MDPAgent()
 
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html', board=game.board, current_player=game.current_player)
+    return render_template("index.html", board=game.board)
 
-@app.route('/set_symbol', methods=['POST'])
-def set_symbol():
-    """Sets the symbol for the player and AI."""
+@app.route("/choose_symbol", methods=["POST"])
+def choose_symbol():
     data = request.json
-    game.current_player = data['symbol']  # Set player's chosen symbol as the starting player
-    return '', 204
+    game.current_player = data["symbol"]
+    return jsonify(success=True)
 
-@app.route('/toss', methods=['POST'])
-def toss():
-    """Simulates a coin toss to decide who plays first."""
+@app.route("/coin_toss", methods=["POST"])
+def coin_toss():
     data = request.json
-    user_choice = data['choice']
-    toss_result = random.choice(['heads', 'tails'])
-    first_player = game.current_player if user_choice == toss_result else 'O'
-    game.current_player = first_player
+    user_choice = data["choice"].lower()
+
+    # Perform the coin toss
+    toss_result = random.choice(["heads", "tails"])
+    
+    # Check if the user won the toss
+    user_starts = user_choice == toss_result
+
+    # Set who goes first based on the coin toss result
+    if user_starts:
+        game.current_player = 'X'  # User starts
+    else:
+        game.current_player = 'O'  # AI starts
+    
     return jsonify({
-        'toss_result': toss_result,
-        'first_player': first_player,
-        'board': game.board
+        "toss_result": toss_result,
+        "user_starts": user_starts,
+        "board": game.board,
+        "current_player": game.current_player
     })
 
-@app.route('/move', methods=['POST'])
+@app.route("/move", methods=["POST"])
 def move():
-    """Handles a player's move, followed by the AI's response if it's the AI's turn."""
     data = request.json
-    position = data['position']
+    position = data["position"]
 
-    # Make the move for the human player
+    # Make the player's move
     if game.make_move(position):
-        # AI's turn if the game isn't over
         if game.current_player == 'O':
-            ai_move = agent.choose_action(game.board)
-            game.make_move(ai_move)
+            ai_position = agent.choose_action(game.board)
+            game.make_move(ai_position)
 
-    # Check the game status
     winner = game.check_winner()
     is_draw = game.is_draw()
 
@@ -56,16 +59,13 @@ def move():
         'board': game.board,
         'winner': winner,
         'draw': is_draw,
-        'next_player': game.current_player  # Send the next player
+        'next_player': game.current_player
     })
 
-@app.route('/reset', methods=['POST'])
+@app.route("/reset", methods=["POST"])
 def reset():
-    """Resets the game to start a new round."""
     game.reset()
-    return jsonify({
-        'board': game.board
-    })
+    return jsonify(success=True)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
