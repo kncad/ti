@@ -1,114 +1,97 @@
-// static/script.js
+document.addEventListener("DOMContentLoaded", function() {
+    const startButton = document.getElementById("startButton");
+    const selection = document.getElementById("selection");
+    const coinToss = document.getElementById("coinToss");
+    const board = document.getElementById("board");
+    const newGameButton = document.getElementById("newGameButton");
 
-document.addEventListener('DOMContentLoaded', () => {
-    const startButton = document.getElementById('startButton');
-    const selectionDiv = document.getElementById('selection');
-    const coinTossDiv = document.getElementById('coinToss');
-    const boardElement = document.getElementById('board');
-    const newGameButton = document.getElementById('newGameButton');
-    const gridCells = document.querySelectorAll('.cell');
-
-    // Start the game: show symbol selection
-    window.startGame = () => {
-        startButton.style.display = 'none';
-        selectionDiv.style.display = 'block';
-    };
-
-    // Choose player symbol (X or O)
-    window.chooseSymbol = async (symbol) => {
-        await fetch('/set_symbol', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ symbol })
-        });
-        selectionDiv.style.display = 'none';
-        coinTossDiv.style.display = 'block';
-    };
-
-    // Perform coin toss to decide who starts
-    window.coinToss = async (choice) => {
-        const response = await fetch('/toss', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ choice })
-        });
-        const data = await response.json();
-
-        coinTossDiv.style.display = 'none';
-        boardElement.style.display = 'block';
-        renderBoard(data.board);
-
-        if (data.first_player === 'O') {
-            aiMove(); // AI makes the first move if it won the toss
-        }
-    };
-
-    // Render the board based on the state from the server
-    function renderBoard(board) {
-        gridCells.forEach((cell, index) => {
-            cell.textContent = board[index];
-            cell.classList.toggle('disabled', board[index] !== ' ');
-        });
-    }
-
-    // Player makes a move by clicking a cell
-    boardElement.addEventListener('click', async (event) => {
-        const cell = event.target;
-        if (!cell.classList.contains('cell') || cell.classList.contains('disabled')) return;
-
-        const position = cell.dataset.index;
-
-        // Send player's move to the server
-        const response = await fetch('/move', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ position: parseInt(position) })
-        });
-        const data = await response.json();
-
-        renderBoard(data.board); // Update board with latest state
-
-        // Check for game end conditions
-        if (data.winner) {
-            endGame(data.winner === 'X' ? 'You win!' : 'You lose!', data.winner);
-        } else if (data.draw) {
-            endGame('It\'s a draw!');
-        } else if (data.next_player === 'O') {
-            aiMove(); // AI move if game isn't over
-        }
+    startButton.addEventListener("click", function() {
+        startButton.style.display = "none";  // Hide start button
+        selection.style.display = "block";   // Show symbol selection options
     });
 
-    // AI makes a move and updates the board
-    async function aiMove() {
-        const response = await fetch('/move', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ position: null })
+    window.chooseSymbol = function(symbol) {
+        fetch("/choose_symbol", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ symbol: symbol })
+        }).then(response => response.json()).then(data => {
+            selection.style.display = "none"; // Hide symbol selection
+            coinToss.style.display = "block"; // Show coin toss options
         });
-        const data = await response.json();
-        
-        renderBoard(data.board);
+    };
 
-        // Check if AI won or if it's a draw
-        if (data.winner) {
-            endGame(data.winner === 'X' ? 'You win!' : 'You lose!', data.winner);
-        } else if (data.draw) {
-            endGame('It\'s a draw!');
+    window.coinToss = function(choice) {
+        fetch("/coin_toss", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ choice: choice })
+        }).then(response => response.json()).then(data => {
+            coinToss.style.display = "none"; // Hide coin toss options
+            board.style.display = "block";   // Show the game board
+
+            // Display coin toss result
+            alert(`Coin Toss Result: ${data.toss_result}. ${data.user_starts ? "You start!" : "AI starts!"}`);
+
+            // If AI starts, make the first move
+            if (!data.user_starts) {
+                makeMove(agent.choose_action(game.board)); // Simulate the AI’s first move
+            }
+
+            initializeBoard(data.board);
+        });
+    };
+
+    function initializeBoard(boardData) {
+        const grid = document.querySelector(".grid");
+        grid.innerHTML = ""; // Clear any previous board data
+
+        // Create 9 cells for the Tic Tac Toe grid
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.addEventListener("click", () => makeMove(i));
+            cell.textContent = boardData[i];
+            grid.appendChild(cell);
         }
     }
 
-    // Reset the game for a new round
-    window.newGame = async () => {
-        await fetch('/reset', { method: 'POST' });
-        boardElement.style.display = 'none';
-        newGameButton.style.display = 'none';
-        startButton.style.display = 'block';
-        renderBoard([' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']); // Clear board
-    };
-
-    // Display end game message
-    function endGame(message, winner = null) {
-        alert(message); // Simple alert; replace with a custom UI if needed
-        newGameButton.style.display = 'block';
+    function makeMove(position) {
+        fetch("/move", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ position: position })
+        }).then(response => response.json()).then(data => {
+            if (data.winner) {
+                showGameResult(data.winner === "X" ? "You Win!" : "You Lose!", data.winner === "X");
+            } else if (data.draw) {
+                showGameResult("It's a Draw!", false);
+            } else {
+                updateBoard(data.board);  // Update the board with the new state
+            }
+        });
     }
+
+    function updateBoard(boardData) {
+        const cells = document.querySelectorAll(".cell");
+        boardData.forEach((value, index) => {
+            cells[index].textContent = value;
+        });
+    }
+
+    function showGameResult(message, userWon) {
+        board.style.display = "none";
+        document.body.style.backgroundColor = userWon ? "green" : "red";
+        alert(message);  // Or create a custom popup
+        newGameButton.style.display = "block";  // Show "New Game" button
+    }
+
+    window.newGame = function() {
+        fetch("/reset", { method: "POST" }).then(() => {
+            document.body.style.backgroundColor = "";  // Reset background color
+            board.style.display = "none";
+            startButton.style.display = "block";  // Show start button again
+            newGameButton.style.display = "none";  // Hide new game button
+        });
+    };
 });
