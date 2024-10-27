@@ -8,22 +8,41 @@
 <body>
     <div class="game-container">
         <h1>Tic Tac Toe</h1>
-        <button id="startButton">Start Game</button>
+        
+        <!-- Start Game Button -->
+        <button id="startButton" onclick="startGame()">Start Game</button>
+        
+        <!-- Symbol Selection -->
         <div id="selection" style="display:none;">
             <h2>Choose X or O:</h2>
             <button onclick="chooseSymbol('X')">X</button>
             <button onclick="chooseSymbol('O')">O</button>
         </div>
+        
+        <!-- Coin Toss Selection -->
         <div id="coinToss" style="display:none;">
             <h2>Choose Heads or Tails:</h2>
             <button onclick="coinToss('heads')">Heads</button>
             <button onclick="coinToss('tails')">Tails</button>
         </div>
+        
+        <!-- Game Board -->
         <div id="board" style="display:none;">
             <div class="grid">
-                <!-- Grid cells, to be filled dynamically with JavaScript -->
+                <!-- 9 Cells for Tic Tac Toe -->
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
             </div>
         </div>
+        
+        <!-- New Game Button -->
         <button id="newGameButton" style="display:none;" onclick="newGame()">New Game</button>
     </div>
 
