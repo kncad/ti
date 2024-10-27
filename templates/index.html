@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tic Tac Toe - Retro Style</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>Tic Tac Toe</h1>
+        <button id="startButton">Start Game</button>
+        <div id="selection" style="display:none;">
+            <h2>Choose X or O:</h2>
+            <button onclick="chooseSymbol('X')">X</button>
+            <button onclick="chooseSymbol('O')">O</button>
+        </div>
+        <div id="coinToss" style="display:none;">
+            <h2>Choose Heads or Tails:</h2>
+            <button onclick="coinToss('heads')">Heads</button>
+            <button onclick="coinToss('tails')">Tails</button>
+        </div>
+        <div id="board" style="display:none;">
+            <div class="grid">
+                <!-- Grid cells, to be filled dynamically with JavaScript -->
+            </div>
+        </div>
+        <button id="newGameButton" style="display:none;" onclick="newGame()">New Game</button>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
